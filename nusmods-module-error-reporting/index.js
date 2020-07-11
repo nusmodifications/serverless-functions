@@ -22,10 +22,7 @@ async function getFacultyEmail(contactId) {
 
 async function checkKillSwitch() {
     try {
-        const { data } = await axios.get('https://volatile.wtf', {
-            params: {
-                key: process.env.KILL_SWITCH_KEY,
-            },
+        const { data } = await axios.get(`https://nusmods.com/${process.env.KILL_SWITCH_KEY}`, {
             responseType: 'text',
         });
 
