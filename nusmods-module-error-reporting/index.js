@@ -52,7 +52,7 @@ module.exports = async (name, contactId, moduleCode, replyTo, message, debug = f
     const facultyEmail = await getFacultyEmail(contactId);
     console.log(`Sending email to ${facultyEmail}`);
 
-    let debugMessage;
+    let debugMessage = '';
     let email;
     let cc = [];
     
@@ -76,7 +76,7 @@ module.exports = async (name, contactId, moduleCode, replyTo, message, debug = f
             to: email,
             cc,
             replyTo: `${name} <${replyTo}>`,
-            subject: `[NUSMods] ${moduleCode} info on NUSMods`,
+            subject: `[NUSMods] Enquiry/issue about ${moduleCode} info on NUSMods`,
             text: `${debugMessage}Hello,
 
 ${name} reported the following issue with ${moduleCode} (${moduleUrl}) on NUSMods. Since NUSMods obtains its information directly from the Registrar's Office, we hope you can help check that the information is correct and update it if necessary.
