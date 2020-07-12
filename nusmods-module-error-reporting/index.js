@@ -46,9 +46,10 @@ function addBlockquoteMarkers(message) {
  * @param {string} moduleCode
  * @param {string} replyTo
  * @param {string} message
+ * @param {string} matricNumber
  * @param {boolean} debug
  */
-module.exports = async (name, contactId, moduleCode, replyTo, message, debug = false) => {
+module.exports = async (name, contactId, moduleCode, replyTo, message, matricNumber, debug = false) => {
     const facultyEmail = await getFacultyEmail(contactId);
     console.log(`Sending email to ${facultyEmail}`);
 
@@ -76,10 +77,10 @@ module.exports = async (name, contactId, moduleCode, replyTo, message, debug = f
             to: email,
             cc,
             replyTo: `${name} <${replyTo}>`,
-            subject: `[NUSMods] Enquiry/issue about ${moduleCode} info on NUSMods`,
+            subject: `[NUSMods] Enquiry/issue about ${moduleCode} on NUSMods from ${name} (${matricNumber})`,
             text: `${debugMessage}Hello,
 
-${name} reported the following issue with ${moduleCode} (${moduleUrl}) on NUSMods. Since NUSMods obtains its information directly from the Registrar's Office, we hope you can help check that the information is correct and update it if necessary.
+${name} (${matricNumber}) reported the following issue with ${moduleCode} (${moduleUrl}) on NUSMods. Since NUSMods obtains its information directly from the Registrar's Office, we hope you can help check that the information is correct and update it if necessary.
 
 ${addBlockquoteMarkers(message)}
 
