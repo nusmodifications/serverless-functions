@@ -1,8 +1,8 @@
 const git = require('isomorphic-git');
 const axios = require('axios');
-const Octokit = require('@octokit/rest');
+const { Octokit } = require('@octokit/rest');
 
-const octokit = new Octokit();
+const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
 const codeBlock = (text, lang = '') =>
   '```' + lang + '\n' + text + '\n```';
@@ -45,11 +45,6 @@ module.exports = async (
   debug = false, 
   context,
 ) => {
-  octokit.authenticate({
-    type: 'oauth',
-    token: process.env.GITHUB_TOKEN,
-  });
-  
   console.log({ venue, room, latlng, floor, comment, reporterName, reporterEmail });
   
   // Get current version of the venue
