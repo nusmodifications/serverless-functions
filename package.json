@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "wrangler": "^3.87.0"
+  },
+  "dependencies": {
+    "@octokit/rest": "^21.0.2"
+  }
+}
