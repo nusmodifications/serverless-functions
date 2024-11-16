@@ -77,6 +77,7 @@ export default {
             from: 'mods@nusmods.com',
             to: email,
             cc,
+            reply_to: `${name} <${replyTo}>`,
             subject: `[NUSMods] Enquiry/issue about ${moduleCode} on NUSMods from ${name} (${matricNumber})`,
             text: `${debugMessage}Hello,
 
