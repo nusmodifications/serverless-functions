@@ -42,7 +42,7 @@ export default {
    * @param {ExecutionContext} ctx
    * @returns {Promise<Response>}
    */
-  async fetch(request, env, ctx) {
+  async fetch(request, env, _) {
     const respHeaders = new Headers();
     respHeaders.set('Access-Control-Allow-Origin', '*');
     respHeaders.set('Access-Control-Allow-Methods', 'POST, OPTIONS');

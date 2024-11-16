@@ -1,82 +1,82 @@
-const nodemailer = require('nodemailer');
-const axios = require('axios');
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-    secure: true,
-    host: process.env.SMTP_HOST,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-    }
-}, {
-    from: process.env.FROM_ADDRESS,
-});
+const addBlockquoteMarkers = msg => msg.split('\n').map(line => `> ${line}`).join('\n');
 
 async function getFacultyEmail(contactId) {
-    const { data } = await axios.get('https://raw.githubusercontent.com/nusmodifications/nusmods/master/website/src/data/facultyEmail.json');
+    const resp = await fetch('https://raw.githubusercontent.com/nusmodifications/nusmods/master/website/src/data/facultyEmail.json');
+    const data = await resp.json();
     const contact = data.find(contact => contact.id === contactId);
-
-    if (!contact) return undefined;
-    return contact.email;
+    return contact ? contact.email : null;
 }
 
-async function checkKillSwitch() {
-    try {
-        const { data } = await axios.get(`https://nusmods.com/${process.env.KILL_SWITCH_KEY}`, {
-            responseType: 'text',
-        });
-
-        return data === 'stop';
-    } catch (e) {
-        console.error('Could not contact killswitch');
-        console.error(e);
-        return true;
+async function parseStreamAsJson(stream) {
+    const chunks = [];
+    for await (const chunk of stream) {
+        chunks.push(chunk);
     }
-}
-
-function addBlockquoteMarkers(message) {
-    return message.split('\n').map(line => `> ${line}`).join('\n');
+    const totalLen = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+    if (totalLen === 0) {
+        return null;
+    }
+    const mergedChunks = new Uint8Array(totalLen);
+    for (let i = 0, offset = 0; i < chunks.length; offset += chunks[i].length, ++i) {
+        mergedChunks.set(chunks[i], offset);
+    }
+    return JSON.parse(new TextDecoder().decode(mergedChunks));
 }
 
 /**
- * Sends emails about issues with modules to NUS
- *
- * @param {string} name
- * @param {string} contactId
- * @param {string} moduleCode
- * @param {string} replyTo
- * @param {string} message
- * @param {string} matricNumber
- * @param {boolean} debug
+ * @typedef {Object} Env
  */
-module.exports = async (name, contactId, moduleCode, replyTo, message, matricNumber, debug = false) => {
-    const facultyEmail = await getFacultyEmail(contactId);
-    console.log(`Sending email to ${facultyEmail}`);
+export default {
 
-    let debugMessage = '';
-    let email;
-    let cc = [];
-    
-    if (debug) {
-        debugMessage = `This is a debug email. If this was in production this would have been sent to <${facultyEmail}>.
+    /**
+     * @param {Request} request
+     * @param {Env} env
+     * @param {ExecutionContext} ctx
+     * @returns {Promise<Response>}
+     */
+    async fetch(request, env, _) {
+        const respHeaders = new Headers();
+        respHeaders.set('Access-Control-Allow-Origin', '*');
+        respHeaders.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        respHeaders.set('Access-Control-Allow-Headers', '*');
+        respHeaders.set('Allow', 'POST, OPTIONS');
+
+        if (request.method === "OPTIONS") {
+            return new Response(null, { status: 204, headers: respHeaders });
+        }
+
+        if (request.method !== "POST" || request.body === null) {
+            return new Response(null, { status: 400, headers: respHeaders });
+        }
+
+        const parsedBody = await parseStreamAsJson(request.body);
+        if (parsedBody === null) {
+            return new Response(null, { status: 400, headers: respHeaders });
+        }
+        const { name, contactId, moduleCode, replyTo, message, matricNumber, debug = false } = parsedBody;
+        const facultyEmail = await getFacultyEmail(contactId);
+
+        let debugMessage = '';
+        let email;
+        let cc = [];
+
+        if (debug) {
+            debugMessage = `This is a debug email. If this was in production this would have been sent to <${facultyEmail}>.
 ========================\n`;
-        email = 'modules@nusmods.com';
-    } else if (await checkKillSwitch()) {
-        debugMessage = `The killswitch has been activated. This email would originally have been sent to <${facultyEmail}>.
-========================\n`;
-        email = 'modules@nusmods.com';
-    } else {
-        email = facultyEmail;
-        cc = ['modules@nusmods.com', replyTo];
-    }
+            email = 'modules@nusmods.com';
+        } else {
+            email = facultyEmail;
+            cc = ['modules@nusmods.com', replyTo];
+        }
 
-    const moduleUrl = `https://nusmods.com/modules/${moduleCode}`;
-
-    try {
-        await transporter.sendMail({
+        const moduleUrl = `https://nusmods.com/modules/${moduleCode}`;
+        const resend = new Resend(env.RESEND_API_KEY);
+        const { error } = await resend.emails.send({
+            from: 'mods@nusmods.com',
             to: email,
             cc,
-            replyTo: `${name} <${replyTo}>`,
             subject: `[NUSMods] Enquiry/issue about ${moduleCode} on NUSMods from ${name} (${matricNumber})`,
             text: `${debugMessage}Hello,
 
@@ -89,8 +89,10 @@ Please reply directly to this email to reply to the student. You can also reply 
 Regards,
 The NUSMods Team`,
         });
-    } catch (e) {
-        console.error(e);
-        throw e;
+        if (error) {
+            throw error;
+        }
+
+        return new Response(null, { status: 202, headers: respHeaders });
     }
-};
+}
