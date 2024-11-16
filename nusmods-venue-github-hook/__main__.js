@@ -43,13 +43,23 @@ export default {
    * @returns {Promise<Response>}
    */
   async fetch(request, env, ctx) {
+    const respHeaders = new Headers();
+    respHeaders.set('Access-Control-Allow-Origin', '*');
+    respHeaders.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    respHeaders.set('Access-Control-Allow-Headers', '*');
+    respHeaders.set('Allow', 'POST, OPTIONS');
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: respHeaders });
+    }
+
     if (request.method !== "POST" || request.body === null) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response(null, { status: 400, headers: respHeaders });
     }
 
     const parsedBody = await parseStreamAsJson(request.body);
     if (parsedBody === null) {
-      return new Response("Bad Request", { status: 400 });
+      return new Response(null, { status: 400, headers: respHeaders });
     }
     const { venue, room, latlng, floor, reporterEmail, debug = false } = parsedBody;
 
@@ -110,6 +120,6 @@ export default {
       });
     }
 
-    return new Response("Accepted", { status: 202 });
+    return new Response(null, { status: 202, headers: respHeaders });
   },
 };
