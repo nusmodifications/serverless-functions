@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "deploy:venue": "wrangler deploy nusmods-venue-github-hook/__main__.js"
+  },
   "devDependencies": {
     "wrangler": "^3.87.0"
   },
