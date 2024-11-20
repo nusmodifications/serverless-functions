@@ -2,12 +2,14 @@
   "scripts": {
     "deploy:venue": "wrangler deploy nusmods-venue-github-hook/index.js",
     "deploy:module": "wrangler deploy nusmods-module-error-reporting/index.js",
-    "deploy:monitor": "wrangler deploy nusmods-service-monitor/index.js"
+    "deploy:monitor": "wrangler deploy nusmods-service-monitor/index.js",
+    "deploy:url": "wrangler deploy nusmods-url-shortener/index.js"
   },
   "devDependencies": {
     "wrangler": "^3.87.0"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.3",
     "@octokit/rest": "^21.0.2",
     "axios": "^1.7.7",
     "resend": "^4.0.1-alpha.0"
