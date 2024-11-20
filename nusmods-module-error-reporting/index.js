@@ -9,22 +9,6 @@ async function getFacultyEmail(contactId) {
     return contact ? contact.email : null;
 }
 
-async function parseStreamAsJson(stream) {
-    const chunks = [];
-    for await (const chunk of stream) {
-        chunks.push(chunk);
-    }
-    const totalLen = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-    if (totalLen === 0) {
-        return null;
-    }
-    const mergedChunks = new Uint8Array(totalLen);
-    for (let i = 0, offset = 0; i < chunks.length; offset += chunks[i].length, ++i) {
-        mergedChunks.set(chunks[i], offset);
-    }
-    return JSON.parse(new TextDecoder().decode(mergedChunks));
-}
-
 /**
  * @typedef {Object} Env
  */
@@ -51,7 +35,7 @@ export default {
             return new Response(null, { status: 400, headers: respHeaders });
         }
 
-        const parsedBody = await parseStreamAsJson(request.body);
+        const parsedBody = await request.json();
         if (parsedBody === null) {
             return new Response(null, { status: 400, headers: respHeaders });
         }

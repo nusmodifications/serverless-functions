@@ -1,4 +1,7 @@
 # Serverless Functions
 
-Serverless functions that NUSMods uses. These used to run on https://code.stdlib.com/ but that is dead so now we're looking into other alternatives.
-For one, venue-github-hook is now hosted on Cloudflare Workers.
+Serverless functions that NUSMods uses. They run on Cloudflare Workers.
+Currently, we have two functions:
+
+- [venue-github-hook](./nusmods-venue-github-hook/) for handling venue data updates.
+- [module-error-reporting](./nusmods-module-error-reporting/) for handling course error reports.
